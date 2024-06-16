@@ -6,12 +6,12 @@ export const createSalesInvoice = async (invoice) => {
     return await axios.post(API_URL, invoice);
 }
 
-export const getAllSalesInvoice = async () => {
+export const getAllSalesInvoices = async () => {
     return await axios.get(API_URL);
 }
 
-export const updateSalesInvoice = async (id, receipt) => {
-    return await axios.put(`${API_URL}/${id}`, receipt);
+export const updateSalesInvoice = async (id, invoice) => {
+    return await axios.put(`${API_URL}/${id}`, invoice);
 }
 
 export const deleteSalesInvoice = async (id) => {

@@ -1,6 +1,5 @@
 package gityeong.SalesInvoice.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -15,14 +14,12 @@ public class SalesInvoice {
     private Long id;
 
     @Column(name = "customer_name", nullable = false)
-    @JsonProperty("customer_name")
     private String customerName;
 
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
     @Column(name = "invoice_date", nullable = false)
-    @JsonProperty("invoice_date")
     private LocalDate invoiceDate;
 
     //Default Constructor
