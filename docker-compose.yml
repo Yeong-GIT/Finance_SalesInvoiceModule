@@ -1,0 +1,46 @@
+services:
+  # PostgreSQL Database Service for SalesInvoice
+  postgres-salesinvoicedb:
+    image: postgres:15-alpine
+    container_name: postgres-salesinvoicedb
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: salesinvoicedb
+    volumes:
+      - postgres-salesinvoice-data:/var/lib/postgresql/data  # Unique volume name
+    ports:
+      - "5433:5432"  # Different port to avoid conflict with cashreceipt
+    networks:
+      - salesinvoice-network
+
+  # SalesInvoice Backend Service
+  sales-invoice-service:
+    build:
+      context: .
+      dockerfile: src/main/Dockerfile
+    ports:
+      - "8081:8080"  # Different port to avoid conflict with cashreceipt
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-salesinvoicedb:5432/salesinvoicedb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 1234
+    networks:
+      - salesinvoice-network
+
+  # SalesInvoice Frontend Service
+  sales-invoice-client:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:80"  # Different port to avoid conflict with cashreceipt
+    networks:
+      - salesinvoice-network
+
+networks:
+  salesinvoice-network:
+    driver: bridge
+
+volumes:
+  postgres-salesinvoice-data:  # Unique volume name
