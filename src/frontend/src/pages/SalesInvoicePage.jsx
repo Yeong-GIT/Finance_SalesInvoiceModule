@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { createSalesInvoice, getAllSalesInvoices, updateSalesInvoice, deleteSalesInvoice} from '../services/SalesInvoiceService';
+import { createSalesInvoice, getAllSalesInvoices, updateSalesInvoice, deleteSalesInvoice } from '../services/SalesInvoiceService';
 import SalesInvoiceForm from '../components/SalesInvoiceForm';
+import GenerateDataButton from '../../utils/GenerateDataButton';
 
 const SalesInvoicePage = () => {
     const [invoices, setInvoices] = useState([]);
@@ -8,19 +9,19 @@ const SalesInvoicePage = () => {
     const [selectedInvoice, setSelectedInvoice] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
 
-    useEffect(() =>{
-        const fetchInvoice = async () => {
+    useEffect(() => {
+        const fetchInvoices = async () => {
             const response = await getAllSalesInvoices();
             setInvoices(response.data);
             setFilteredInvoices(response.data);
         };
-        fetchInvoice();
-    },[]);
+        fetchInvoices();
+    }, []);
 
-    const handleSubmit = async(invoice, id) => {
-        if(id){
+    const handleSubmit = async (invoice, id) => {
+        if (id) {
             await updateSalesInvoice(id, invoice);
-        }else{
+        } else {
             await createSalesInvoice(invoice);
         }
         const response = await getAllSalesInvoices();
@@ -42,23 +43,31 @@ const SalesInvoicePage = () => {
     const handleSearch = (e) => {
         const query = e.target.value;
         setSearchQuery(query);
-        if(query){
+        if (query) {
             setFilteredInvoices(invoices.filter(invoice => invoice.customerName.toLowerCase().includes(query.toLowerCase())));
-        }else{
+        } else {
             setFilteredInvoices(invoices);
         }
-    }
-    
-    return(
+    };
+
+    // Function to refresh invoices
+    const refreshInvoices = async () => {
+        const response = await getAllSalesInvoices();
+        setInvoices(response.data);
+        setFilteredInvoices(response.data);
+    };
+
+    return (
         <div>
             <h1>Sales Invoices</h1>
-            <input 
-            type="text"
-            placeholder="Search by Customer Name"
-            value={searchQuery}
-            onChange={handleSearch}
-             />
-             <SalesInvoiceForm onSubmit={handleSubmit} selectedInvoice={selectedInvoice} setSelectedInvoice={setSelectedInvoice}/>
+            <input
+                type="text"
+                placeholder="Search by Customer Name"
+                value={searchQuery}
+                onChange={handleSearch}
+            />
+            <SalesInvoiceForm onSubmit={handleSubmit} selectedInvoice={selectedInvoice} setSelectedInvoice={setSelectedInvoice} />
+            <GenerateDataButton onGenerated={refreshInvoices} /> {/* Add the button here */}
             <table>
                 <thead>
                     <tr>
@@ -85,7 +94,7 @@ const SalesInvoicePage = () => {
                 </tbody>
             </table>
         </div>
-    )
+    );
 };
 
 export default SalesInvoicePage;

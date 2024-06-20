@@ -33,6 +33,7 @@ services:
     build:
       context: ./src/frontend
       dockerfile: Dockerfile
+    container_name: salesinvoice-client
     ports:
       - "3001:80"  # Different port to avoid conflict with cashreceipt
     networks:

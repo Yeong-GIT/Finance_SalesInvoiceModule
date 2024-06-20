@@ -13,6 +13,8 @@ build
 # Ignore OS-specific files
 .DS_Store
 Thumbs.db
+# Ignore everything by default
+**
 
 # Ignore Git and Docker related files
 .git
@@ -35,3 +37,13 @@ docker-compose.yml
 
 # Ignore specific public assets if not needed in the Docker image
 public/images
+# Include specific directories and files
+!src/
+!src/main/
+!src/main/scripts/
+!target/
+!target/*.jar
+!Dockerfile
+!docker-compose.yml
+!.dockerignore
+

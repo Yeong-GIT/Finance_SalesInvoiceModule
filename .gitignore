@@ -1,17 +1,45 @@
 HELP.md
+# General Ignored Files
+*.log
+*.tmp
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Target directories for Maven/Gradle
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-# Ignore compiled class files
+# Maven specific files
+.mvn/wrapper/maven-wrapper.jar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Spring Boot specific
+*.war
+*.jar
+
+# Byte-compiled / optimized / DLL files
 *.class
 
-# Ignore other typical generated files
-/bin/
-/out/
-
 ### STS ###
+# IDE specific files
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# STS (Spring Tool Suite)
 .apt_generated
 .classpath
 .factorypath
@@ -20,6 +48,9 @@ target/
 .springBeans
 .sts4-cache
 
+# Ignore compiled class files
+*.class
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
@@ -27,14 +58,90 @@ target/
 *.ipr
 
 ### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
+
+# VS Code
+.vscode/
+
+# Node.js specific
+node_modules/
+dist/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+# Python specific
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.egg
+*.egg-info/
+.eggs/
+wheels/
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
 ### VS Code ###
 .vscode/
+# Environments
+.python-version
+
+# Pylint and mypy
+.mypy_cache/
+.dmypy.json
+.dmypy.json
+.pyre/
+
+# Environment files
+.env
+*.env
+
+# Git specific
+.git/
+.gitignore
+
+# Docker specific
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Public assets that may not be needed
+public/images/
+
+# Test files and directories
+/tests
+/tests/
+
+# Miscellaneous
+HELP.md
+
