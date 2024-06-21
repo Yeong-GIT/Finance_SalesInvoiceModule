@@ -19,6 +19,7 @@ services:
     build:
       context: .
       dockerfile: src/main/Dockerfile
+    container_name: salesinvoice-service
     ports:
       - "8081:8080"  # Different port to avoid conflict with cashreceipt
     environment:
