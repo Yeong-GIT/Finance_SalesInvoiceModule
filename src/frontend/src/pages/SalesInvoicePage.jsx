@@ -1,74 +1,164 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createSalesInvoice, getAllSalesInvoices, updateSalesInvoice, deleteSalesInvoice } from '../services/SalesInvoiceService';
-import SalesInvoiceForm from '../components/SalesInvoiceForm';
 import GenerateDataButton from '../../utils/GenerateDataButton';
 
 const SalesInvoicePage = () => {
     const [invoices, setInvoices] = useState([]);
-    const [filteredInvoices, setFilteredInvoices] = useState([]);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
-    const [searchQuery, setSearchQuery] = useState('');
+    const tableRef = useRef(null);
 
     useEffect(() => {
         const fetchInvoices = async () => {
             const response = await getAllSalesInvoices();
             setInvoices(response.data);
-            setFilteredInvoices(response.data);
+
+            if (!$.fn.dataTable.isDataTable('#salesInvoicesTable')) {
+                tableRef.current = $('#salesInvoicesTable').DataTable({
+                    data: response.data,
+                    responsive: true,
+                    paging: true,
+                    pageLength: 10,
+                    lengthChange: true,
+                    lengthMenu: [5, 10, 25, 50],
+                    searching: true,
+                    info: true,
+                    columns: [
+                        { data: 'id' },
+                        { data: 'customerName' },
+                        { data: 'amount' },
+                        { data: 'invoiceDate' },
+                        {
+                            data: null,
+                            render: (data, type, row) => `
+                                <button class="update-btn" data-id="${row.id}">Update</button>
+                                <button class="delete-btn" data-id="${row.id}">Delete</button>
+                            `
+                        }
+                    ],
+                    destroy: true,
+                    dom: 'lfrtip',
+                    initComplete: function () {
+                        $('#salesInvoicesTable_filter').prepend(`
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="customerNameInput" placeholder="Customer Name" style="width: 150px;" />
+                                <input type="number" id="amountInput" placeholder="Amount" style="width: 100px;" />
+                                <input type="date" id="invoiceDateInput" style="width: 150px;" />
+                                <button id="addInvoiceBtn" class="btn btn-success">Add Sales Invoice</button>
+                            </div>
+                        `);
+
+                        $('#addInvoiceBtn').on('click', async () => {
+                            const customerName = $('#customerNameInput').val();
+                            const amount = $('#amountInput').val();
+                            const invoiceDate = $('#invoiceDateInput').val();
+
+                            if (customerName && amount && invoiceDate) {
+                                const newInvoice = {
+                                    customerName,
+                                    amount: parseFloat(amount),
+                                    invoiceDate
+                                };
+                                await createSalesInvoice(newInvoice);
+                                const response = await getAllSalesInvoices();
+                                setInvoices(response.data);
+
+                                // Clear the input fields after adding a new invoice
+                                $('#customerNameInput').val('');
+                                $('#amountInput').val('');
+                                $('#invoiceDateInput').val('');
+                            } else {
+                                alert("Please fill in all fields.");
+                            }
+                        });
+                    }
+                });
+            }
         };
+
         fetchInvoices();
+
+        return () => {
+            if ($.fn.dataTable.isDataTable('#salesInvoicesTable')) {
+                $('#salesInvoicesTable').DataTable().destroy();
+            }
+        };
     }, []);
 
-    const handleSubmit = async (invoice, id) => {
-        if (id) {
-            await updateSalesInvoice(id, invoice);
-        } else {
-            await createSalesInvoice(invoice);
+    useEffect(() => {
+        if (tableRef.current) {
+            tableRef.current.clear().rows.add(invoices).draw();
+
+            $('#salesInvoicesTable tbody').off('click', '.update-btn').on('click', '.update-btn', function () {
+                const id = $(this).data('id');
+                const invoice = invoices.find(invoice => invoice.id === id);
+                setSelectedInvoice(invoice);
+                $('#customerNameInput').val(invoice.customerName);
+                $('#amountInput').val(invoice.amount);
+                $('#invoiceDateInput').val(invoice.invoiceDate);
+                $('#addInvoiceBtn').text('Update Sales Invoice').off('click').on('click', async () => {
+                    const updatedInvoice = {
+                        customerName: $('#customerNameInput').val(),
+                        amount: parseFloat($('#amountInput').val()),
+                        invoiceDate: $('#invoiceDateInput').val()
+                    };
+                    if (updatedInvoice.customerName && updatedInvoice.amount && updatedInvoice.invoiceDate) {
+                        await updateSalesInvoice(id, updatedInvoice);
+                        setSelectedInvoice(null);
+                        $('#addInvoiceBtn').text('Add Sales Invoice').off('click').on('click', async () => {
+                            const customerName = $('#customerNameInput').val();
+                            const amount = $('#amountInput').val();
+                            const invoiceDate = $('#invoiceDateInput').val();
+
+                            if (customerName && amount && invoiceDate) {
+                                const newInvoice = {
+                                    customerName,
+                                    amount: parseFloat(amount),
+                                    invoiceDate
+                                };
+                                await createSalesInvoice(newInvoice);
+                                const response = await getAllSalesInvoices();
+                                setInvoices(response.data);
+
+                                $('#customerNameInput').val('');
+                                $('#amountInput').val('');
+                                $('#invoiceDateInput').val('');
+                            } else {
+                                alert("Please fill in all fields.");
+                            }
+                        });
+
+                        const response = await getAllSalesInvoices();
+                        setInvoices(response.data);
+
+                        $('#customerNameInput').val('');
+                        $('#amountInput').val('');
+                        $('#invoiceDateInput').val('');
+                    } else {
+                        alert("Please fill in all fields.");
+                    }
+                });
+            });
+
+            $('#salesInvoicesTable tbody').off('click', '.delete-btn').on('click', '.delete-btn', async function () {
+                const id = $(this).data('id');
+                await deleteSalesInvoice(id);
+                const response = await getAllSalesInvoices();
+                setInvoices(response.data);
+                tableRef.current.clear().rows.add(response.data).draw();
+            });
         }
-        const response = await getAllSalesInvoices();
-        setInvoices(response.data);
-        setFilteredInvoices(response.data);
-    };
+    }, [invoices]);
 
-    const handleUpdateClick = (invoice) => {
-        setSelectedInvoice(invoice);
-    };
-
-    const handleDeleteClick = async (id) => {
-        await deleteSalesInvoice(id);
-        const response = await getAllSalesInvoices();
-        setInvoices(response.data);
-        setFilteredInvoices(response.data);
-    };
-
-    const handleSearch = (e) => {
-        const query = e.target.value;
-        setSearchQuery(query);
-        if (query) {
-            setFilteredInvoices(invoices.filter(invoice => invoice.customerName.toLowerCase().includes(query.toLowerCase())));
-        } else {
-            setFilteredInvoices(invoices);
-        }
-    };
-
-    // Function to refresh invoices
     const refreshInvoices = async () => {
         const response = await getAllSalesInvoices();
         setInvoices(response.data);
-        setFilteredInvoices(response.data);
     };
 
     return (
         <div>
             <h1>Sales Invoices</h1>
-            <input
-                type="text"
-                placeholder="Search by Customer Name"
-                value={searchQuery}
-                onChange={handleSearch}
-            />
-            <SalesInvoiceForm onSubmit={handleSubmit} selectedInvoice={selectedInvoice} setSelectedInvoice={setSelectedInvoice} />
-            <GenerateDataButton onGenerated={refreshInvoices} /> {/* Add the button here */}
-            <table>
+            <GenerateDataButton onGenerated={refreshInvoices} />
+            <table id="salesInvoicesTable" className="display responsive nowrap" style={{ width: '100%' }}>
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -79,18 +169,7 @@ const SalesInvoicePage = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredInvoices.map(invoice => (
-                        <tr key={invoice.id}>
-                            <td>{invoice.id}</td>
-                            <td>{invoice.customerName}</td>
-                            <td>{invoice.amount}</td>
-                            <td>{invoice.invoiceDate}</td>
-                            <td>
-                                <button onClick={() => handleUpdateClick(invoice)}>Update</button>
-                                <button onClick={() => handleDeleteClick(invoice.id)}>Delete</button>
-                            </td>
-                        </tr>
-                    ))}
+                    {/* DataTables will handle data rendering */}
                 </tbody>
             </table>
         </div>
