@@ -2,8 +2,8 @@ package gityeong.SalesInvoice.controller;
 
 import gityeong.SalesInvoice.entity.SalesInvoice;
 import gityeong.SalesInvoice.service.SalesInvoiceService;
-import org.springframework.beans.factory.annotation.Autowired;
 import gityeong.SalesInvoice.service.KafkaProducerService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -75,7 +75,4 @@ public class SalesInvoiceController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
-
-
 }
