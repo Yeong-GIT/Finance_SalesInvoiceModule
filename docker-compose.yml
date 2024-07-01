@@ -1,27 +1,24 @@
+version: '3.8'
+
 services:
-  zookeeper:
+  zookeeper-invoice:
     image: confluentinc/cp-zookeeper:7.6.1
     container_name: zookeeper-invoice
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2182  # Changed to avoid conflict
+      ZOOKEEPER_CLIENT_PORT: 2182
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "2182:2182"  # Exposing a different port
+      - "2182:2182"
     networks:
       - finance-network
     volumes:
       - zookeeper-data-invoice:/var/lib/zookeeper
-    healthcheck:
-      test: ["CMD-SHELL", "echo ruok | nc 127.0.0.1 2182 | grep imok"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 
-  kafka:
+  kafka-invoice:
     image: confluentinc/cp-kafka:7.6.1
     container_name: kafka-invoice
     depends_on:
-      - zookeeper
+      - zookeeper-invoice
     environment:
       KAFKA_BROKER_ID: 2
       KAFKA_ZOOKEEPER_CONNECT: zookeeper-invoice:2182
@@ -31,18 +28,12 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     ports:
-      - "9093:9093"  # Different port to avoid conflict
+      - "9093:9093"
     networks:
       - finance-network
     volumes:
       - kafka-data-invoice:/var/lib/kafka/data
-    healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9093"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 
-  # PostgreSQL Database Service for SalesInvoice
   postgres-salesinvoicedb:
     image: postgres:15-alpine
     container_name: postgres-salesinvoicedb
@@ -51,49 +42,42 @@ services:
       POSTGRES_PASSWORD: 1234
       POSTGRES_DB: salesinvoicedb
     volumes:
-      - postgres-salesinvoice-data:/var/lib/postgresql/data  # Unique volume name
+      - postgres-salesinvoice-data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"  # Different port to avoid conflict with cashreceipt
+      - "5433:5432"
     networks:
       - finance-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 
-  # SalesInvoice Backend Service
-  sales-invoice-service:
+  salesinvoice-service:
     build:
       context: .
       dockerfile: src/main/Dockerfile
     container_name: salesinvoice-service
     ports:
-      - "8081:8080"  # Different port to avoid conflict with cashreceipt
+      - "8081:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-salesinvoicedb:5432/salesinvoicedb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: 1234
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-invoice:29093  # Connect to Kafka using the correct container name
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-invoice:29093
     networks:
       - finance-network
 
-  # SalesInvoice Frontend Service
   sales-invoice-client:
     build:
       context: ./src/frontend
       dockerfile: Dockerfile
     container_name: salesinvoice-client
     ports:
-      - "3001:80"  # Different port to avoid conflict with cashreceipt
+      - "3001:80"
     networks:
       - finance-network
 
 networks:
   finance-network:
-    driver: bridge
+    external: true
 
 volumes:
-  postgres-salesinvoice-data:  # Unique volume name
-  kafka-data-invoice:  # Correct volume name
-  zookeeper-data-invoice:  # Correct volume name
+  postgres-salesinvoice-data:
+  kafka-data-invoice:
+  zookeeper-data-invoice:

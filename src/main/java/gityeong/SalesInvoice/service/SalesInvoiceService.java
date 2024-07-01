@@ -4,29 +4,29 @@ import gityeong.SalesInvoice.entity.SalesInvoice;
 import gityeong.SalesInvoice.repository.SalesInvoiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class SalesInvoiceService {
+
     @Autowired
     private SalesInvoiceRepository repository;
 
-    public List<SalesInvoice> getAllSalesInvoicesInSequence(){
+    @Autowired
+    private KafkaProducerService kafkaProducerService;
+
+    public List<SalesInvoice> getAllSalesInvoices() {
         return repository.findAll();
     }
 
-    public SalesInvoice findById(Long id){
-        Optional<SalesInvoice> optionalInvoice = repository.findById(id);
-        if(optionalInvoice.isPresent()){
-            return optionalInvoice.get();
-        }else{
-            throw new RuntimeException("Sales invoice with id" + id + "not found");
-        }
+    public Optional<SalesInvoice> findById(Long id) {
+        return repository.findById(id);
     }
 
+    @Transactional
     public SalesInvoice createSalesInvoice(SalesInvoice invoice) {
         // Validate customerName is not null
         if (invoice.getCustomerName() == null || invoice.getCustomerName().trim().isEmpty()) {
@@ -35,29 +35,40 @@ public class SalesInvoiceService {
         if (invoice.getInvoiceDate() == null) {
             throw new IllegalArgumentException("Invoice date cannot be null");
         }
-        return repository.save(invoice);
+
+        SalesInvoice savedInvoice = repository.save(invoice);
+        kafkaProducerService.sendMessage(savedInvoice);
+        return savedInvoice;
     }
 
-    public SalesInvoice updateCashReceipt(Long id, SalesInvoice invoice){
+    @Transactional
+    public SalesInvoice updateSalesInvoice(Long id, SalesInvoice invoice) {
         Optional<SalesInvoice> optionalInvoice = repository.findById(id);
-        if(optionalInvoice.isPresent()){
+        if (optionalInvoice.isPresent()) {
             SalesInvoice existingInvoice = optionalInvoice.get();
             existingInvoice.setCustomerName(invoice.getCustomerName());
             existingInvoice.setAmount(invoice.getAmount());
             existingInvoice.setInvoiceDate(invoice.getInvoiceDate());
-            return repository.save(existingInvoice);
-        }else{
-            throw new RuntimeException("Sales Invoice with id " + id + "not found");
+
+            SalesInvoice updatedInvoice = repository.save(existingInvoice);
+            kafkaProducerService.sendMessage(updatedInvoice);
+            return updatedInvoice;
+        } else {
+            throw new RuntimeException("Sales Invoice with id " + id + " not found");
         }
     }
 
-    public boolean deleteSalesInvoice(Long id){
+    @Transactional
+    public void deleteSalesInvoice(Long id) {
         Optional<SalesInvoice> optionalInvoice = repository.findById(id);
-        if(optionalInvoice.isPresent()){
+        if (optionalInvoice.isPresent()) {
             repository.deleteById(id);
-            return true;
-        }else{
-            throw new RuntimeException("Sales invoice with id " + id + "not found");
+
+            SalesInvoice deletedInvoice = new SalesInvoice();
+            deletedInvoice.setId(id);
+            kafkaProducerService.sendMessage(deletedInvoice);
+        } else {
+            throw new RuntimeException("Sales invoice with id " + id + " not found");
         }
     }
 }

@@ -1,26 +1,20 @@
 package gityeong.SalesInvoice.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import gityeong.SalesInvoice.entity.SalesInvoice;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class KafkaProducerService {
+    @Value("${salesinvoice.topic.name}")
+    private String topicName;
 
     @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
+    private KafkaTemplate<String, SalesInvoice> kafkaTemplate;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
-
-    public void sendMessage(String topic, Object message) {
-        try {
-            String jsonMessage = objectMapper.writeValueAsString(message);
-            kafkaTemplate.send(topic, jsonMessage);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            // Handle serialization error
-        }
+    public void sendMessage(SalesInvoice message) {
+        kafkaTemplate.send(topicName, message);
     }
 }
