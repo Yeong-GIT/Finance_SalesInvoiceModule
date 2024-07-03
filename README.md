@@ -217,7 +217,7 @@ This python scripts creates random 10 receipts per click with "Generate Sales In
 - Spring Boot configuration: `src/main/resources/application.properties`
 - Docker and Kafka configuration: `src/docker-compose.yml`
 
-## Code Examples
+## Docker File Examples
 ```Backend Dockerfile
 # Use OpenJDK 18
 FROM openjdk:18-jdk-slim
