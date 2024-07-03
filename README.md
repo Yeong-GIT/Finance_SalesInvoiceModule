@@ -260,6 +260,9 @@ This Dockerfile sets up a Docker container for running a Java application along 
 ## PostgreSQL Database via Docker
 ```
 docker exec -it postgres-salesinvoicedb psql -U postgres
+```
+### After entering postgres psql shell
+```
 \c salesinvoicedb
 ```
 This command line executes postgres-salesinvoicedb from docker.
