@@ -222,7 +222,7 @@ if __name__ == "__main__":
 
 This python scripts creates random 10 receipts per click with "Generate Sales Invoice" button.
 
-![GenerateButton](https://github.com/Yeong-GIT/Finance_CashReceiptModule/assets/49313115/e0bb4017-bc0f-4200-b39b-b68dc7e23727)
+![salesinvoice-ezgif com-video-to-gif-converter](https://github.com/Yeong-GIT/Finance_SalesInvoiceModule/assets/49313115/96d78723-1179-4b48-ad4f-d8ea1b422333)
 
 ## Configuration
 
