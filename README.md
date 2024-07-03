@@ -230,7 +230,7 @@ This python scripts creates random 10 receipts per click with "Generate Sales In
 - Docker and Kafka configuration: `src/docker-compose.yml`
 
 ## Docker File Examples
-```Backend Dockerfile
+```
 # Use OpenJDK 18
 FROM openjdk:18-jdk-slim
 
@@ -255,8 +255,16 @@ EXPOSE 8080
 # Define the command to run the application
 ENTRYPOINT ["java", "-jar", "SalesInvoice-0.0.1-SNAPSHOT.jar"]
 ```
-
 This Dockerfile sets up a Docker container for running a Java application along with a Python script.
+
+## PostgreSQL Database via Docker
+```
+docker exec -it postgres-salesinvoicedb psql -U postgres
+\c salesinvoicedb
+```
+This command line executes postgres-salesinvoicedb from docker.
+
+![Postgres](https://github.com/Yeong-GIT/Finance_SalesInvoiceModule/assets/49313115/271f8738-df4c-498d-977d-c4f3ddda0d49)
 
 ## Deployment
 
